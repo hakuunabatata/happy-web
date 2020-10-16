@@ -1,15 +1,28 @@
-import React from 'react'
-import { FiPlus } from 'react-icons/fi'
+import React, { useEffect, useState } from 'react'
+import { FiArrowRight, FiPlus } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
-import { Map, TileLayer } from 'react-leaflet'
-
-import 'leaflet/dist/leaflet.css'
+import { Map, TileLayer, Marker, Popup } from 'react-leaflet'
 
 import mapMarkerImg from '../images/map-marker.svg'
 
 import '../styles/pages/orphanage-map.css'
+import mapIcon from '../utils/mapIcon'
+import api from '../services/api'
+
+interface Orphanage {
+    name: string
+    id: number
+    latitude: number
+    longitude: number
+}
 
 function OrphanagesMap() {
+    const [orphanages, setOrphanages] = useState<Orphanage[]>([])
+
+    useEffect(() => {
+        api.get('/orphanages').then(({ data }) => setOrphanages(data))
+    }, [])
+
     return (
         <div id="page-map">
             <aside>
@@ -35,9 +48,28 @@ function OrphanagesMap() {
                 }}
             >
                 <TileLayer url="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                {orphanages.map(({ id, latitude, longitude, name }) => (
+                    <Marker
+                        key={id}
+                        icon={mapIcon}
+                        position={[latitude, longitude]}
+                    >
+                        <Popup
+                            closeButton={false}
+                            minWidth={240}
+                            maxWidth={240}
+                            className="map-popup"
+                        >
+                            {name}
+                            <Link to={`/orphanages/${id}`}>
+                                <FiArrowRight size={20} color="#FFF" />
+                            </Link>
+                        </Popup>
+                    </Marker>
+                ))}
             </Map>
 
-            <Link to="" className="create-orphanage">
+            <Link to="/orphanages/create" className="create-orphanage">
                 <FiPlus size={32} color="#fff" />
             </Link>
         </div>
